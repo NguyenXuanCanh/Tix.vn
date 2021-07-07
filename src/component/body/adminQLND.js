@@ -196,7 +196,7 @@ export default function AdminQLND() {
                     {themND == true ?
                         <React.Fragment>
                             <div className="row title">
-                                <div className="col-6">
+                                <div className="col-6" style={{ marginBottom: "20px" }}>
                                     <h1>Thêm người dùng</h1>
                                 </div>
                                 <div className="col-6">
@@ -252,7 +252,7 @@ export default function AdminQLND() {
                     {userState?.taiKhoan ?
                         <React.Fragment>
                             <div className="row title">
-                                <div className="col-6">
+                                <div className="col-6" style={{ marginBottom: "20px" }}>
                                     <h1>Sửa người dùng</h1>
                                 </div>
                                 <div className="col-6">

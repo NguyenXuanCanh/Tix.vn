@@ -35,7 +35,7 @@ export default class DetailDay extends Component {
     render() {
         let { day } = this.props
         return (
-            <div className="date_set">
+            <div className="day_set">
                 <span onClick={() => {
                     this.openTime();
                     this.setState({
@@ -43,7 +43,7 @@ export default class DetailDay extends Component {
                     })
                 }}>
                     ngày: {day}
-                    {!this.state.isOpen ? ("") : (<div className="info_day_setUp">{this.getDay()}</div>)}
+                    {!this.state.isOpen ? ("") : (<div className="info_day_setup">{this.getDay()}</div>)}
                 </span>
             </div>
         )

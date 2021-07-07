@@ -8,6 +8,7 @@ import Swal from 'sweetalert2'
 
 
 import * as Yup from 'yup'
+import { Button, Modal } from 'react-bootstrap';
 
 export default function AdminDSP() {
     let [mangND, setMangND] = useState([{
@@ -18,6 +19,73 @@ export default function AdminDSP() {
         soDt: "0906709400",
         taiKhoan: "hungthai41",
     }]);
+
+    const [show, setShow] = useState(false);
+
+    const handleClose = () => setShow(false);
+    const handleShow = () => setShow(true);
+    const formikTLC = useFormik({
+        initialValues: {
+            maPhim: '',
+            giaVe: '',
+            ngayKhoiChieu: '',
+        },
+        validationSchema: Yup.object().shape({
+            maPhim: Yup.string(),
+            giaVe: Yup.string().required('Giá vé không được bỏ trống'),
+            ngayKhoiChieu: Yup.string()
+        }),
+        onSubmit: values => {
+            values.maPhim = phimState.maPhim;
+            values['ngayChieuGioChieu'] = document.getElementById('ngayKhoiChieu2').value;
+            values['maRap'] = selectedInfo.maRap;
+            values['ngayChieuGioChieu'] = chuanHoaNgay(values['ngayChieuGioChieu']);
+            console.log(values);
+            themLichChieu(values);
+        }
+    });
+
+    function chuanHoaNgay(date) {
+        // 2021-07-08 10:58 AM
+        let haiKyTuCuoi = date.substring(17);
+        // date = date.substr(17)
+        date = date.slice(0, 16);
+        let newString = date.substr(11, 1) + date.substr(12, 1);
+        if (haiKyTuCuoi == 'PM') {
+            newString = parseInt(newString) + 12;
+        }
+        // newString.toString();
+        // setCharAt(date, 10, "T");
+        // date = date.substr(0, 10) + "T" + date.substr(10 + 1);
+        date = date.substr(0, 11) + (newString) + date.substr(13);
+        date = date.concat(':00');
+
+        return date;
+
+    }
+
+    function setCharAt(str, index, chr) {
+        if (index > str.length - 1) return str;
+        return str.substr(0, index) + chr + str.substr(index + 1);
+    }
+
+    async function themLichChieu(values) {
+        try {
+            const result = await axios({
+                url: `https://movie0706.cybersoft.edu.vn/api/QuanLyDatVe/TaoLichChieu`,
+                method: 'POST',
+                data: values,
+                headers: {
+                    "Authorization": "Bearer  " + localStorage.getItem('accessToken')
+                }
+            })
+            Swal.fire("Thêm thành công", "Nhấn ok để thoát", "success").then(() => {
+                window.location.reload();
+            })
+        } catch (error) {
+            Swal.fire("Thêm thất bại", error.response?.data, "error")
+        }
+    }
 
     const [startDate, setStartDate] = useState(new Date());
     const [selectedFile, setSelectedFile] = useState();
@@ -57,6 +125,52 @@ export default function AdminDSP() {
     let [themPhim, setThemPhim] = useState(false);
     let [phimState, setPhimState] = useState({});
 
+    let [cumRapState, setCumRapState] = useState([
+        {
+            "maHeThongRap": "BHDStar",
+            "tenHeThongRap": "BHD Star Cineplex",
+            "biDanh": "bhd-star-cineplex",
+            "logo": "http://movie0706.cybersoft.edu.vn/hinhanh/bhd-star-cineplex.png"
+        },
+        {
+            "maHeThongRap": "CGV",
+            "tenHeThongRap": "cgv",
+            "biDanh": "cgv",
+            "logo": "http://movie0706.cybersoft.edu.vn/hinhanh/cgv.png"
+        },
+        {
+            "maHeThongRap": "CineStar",
+            "tenHeThongRap": "CineStar",
+            "biDanh": "cinestar",
+            "logo": "http://movie0706.cybersoft.edu.vn/hinhanh/cinestar.png"
+        },
+        {
+            "maHeThongRap": "Galaxy",
+            "tenHeThongRap": "Galaxy Cinema",
+            "biDanh": "galaxy-cinema",
+            "logo": "http://movie0706.cybersoft.edu.vn/hinhanh/galaxy-cinema.png"
+        },
+        {
+            "maHeThongRap": "LotteCinima",
+            "tenHeThongRap": "Lotte Cinema",
+            "biDanh": "lotte-cinema",
+            "logo": "http://movie0706.cybersoft.edu.vn/hinhanh/lotte-cinema.png"
+        },
+        {
+            "maHeThongRap": "MegaGS",
+            "tenHeThongRap": "MegaGS",
+            "biDanh": "megags",
+            "logo": "http://movie0706.cybersoft.edu.vn/hinhanh/megags.png"
+        }
+    ]);
+    let [rapState, setRapState] = useState([]);
+
+    let [selectedInfo, setSelectedInfo] = useState({
+        maHeThongRap: 'BHDStar',
+        maCumRap: "bhd-star-cineplex-3-2",
+        maRap: 451,
+    });
+
     useEffect(async () => {
         try {
             const result = await axios({
@@ -68,6 +182,57 @@ export default function AdminDSP() {
             console.log(error);
         }
     }, [])
+
+    useEffect(async () => {
+        try {
+            const result = await axios({
+                url: 'https://movie0706.cybersoft.edu.vn/api/QuanLyRap/LayThongTinHeThongRap',
+                method: 'GET',
+            });
+            setCumRapState(result.data)
+        } catch (error) {
+            console.log(error);
+        }
+    }, [])
+
+    function renderCumRap() {
+        return cumRapState.map((item, index) => {
+            return <option value={item.maHeThongRap} key={index}>{item.tenHeThongRap}</option>
+        })
+    }
+
+    useEffect(async () => {
+        try {
+            const result = await axios({
+                url: `https://movie0706.cybersoft.edu.vn/api/QuanLyRap/LayThongTinCumRapTheoHeThong?maHeThongRap=${selectedInfo.maHeThongRap}`,
+                method: 'GET',
+            });
+            setRapState(result.data)
+        } catch (error) {
+            console.log(error);
+        }
+    })
+
+    function renderRap() {
+        return rapState?.map((item, index) => {
+            return <option value={item.maCumRap} key={index}>{item.tenCumRap}</option>
+        })
+    }
+
+    function renderDanhSachRap() {
+        for (let element of rapState) {
+            if (element.maCumRap == selectedInfo.maCumRap) {
+                return element.danhSachRap.map((item, index) => {
+                    return <option value={item.maRap} key={index}>{item.tenRap}</option>
+                })
+            }
+        }
+    }
+
+    function changeSelectedInfo(event) {
+        selectedInfo[event.target.name] = event.target.value;
+        // console.log(selectedInfo);
+    }
 
     const formik = useFormik({
         initialValues: {
@@ -114,7 +279,7 @@ export default function AdminDSP() {
     });
 
     async function themPhimFunc(values) {
-        values['ngayKhoiChieu'] = document.getElementById('ngayKhoiChieu').value;
+        values['ngayKhoiChieu'] = document.getElementById('ngayKhoiChieu1').value;
         values['danhGia'] = 0;
         values['maPhim'] = 0;
         values['maNhom'] = "GP06";
@@ -147,7 +312,7 @@ export default function AdminDSP() {
     }
 
     async function fakeSubmition() {
-        phimState['ngayKhoiChieu'] = document.getElementById('ngayKhoiChieu').value;
+        phimState['ngayKhoiChieu'] = document.getElementById('ngayKhoiChieu3').value;
         try {
             const result = await axios({
                 url: `https://movie0706.cybersoft.edu.vn/api/QuanLyPhim/CapNhatPhim`,
@@ -190,12 +355,14 @@ export default function AdminDSP() {
             mangND.map((item, index) => {
                 return (
                     <tr key={index}>
-                        <td>{item.tenPhim}</td>
-                        <td>{item.trailer}</td>
-                        <td>{item.ngayKhoiChieu}</td>
+                        <td>
+                            <h3>{item.tenPhim}</h3>
+                        </td>
                         <td>
                             <img src={item.hinhAnh} style={{ maxWidth: '100px' }}></img>
                         </td>
+                        <td>{item.trailer}</td>
+                        <td>{item.ngayKhoiChieu}</td>
                         <td>{item.danhGia}</td>
                         <td>
                             <button className="btn btn-primary" onClick={() => {
@@ -212,6 +379,78 @@ export default function AdminDSP() {
 
     return (
         <React.Fragment>
+            <Modal show={show} onHide={handleClose}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Thêm lịch chiếu phim</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <form onSubmit={formikTLC.handleSubmit}>
+                        <div className="row">
+                            <div className="col-6 form-group">
+                                <label>Tên phim</label>
+                                <input type="text" name="tenPhim" disabled value={phimState.tenPhim} className="form-control" />
+                            </div>
+                            <div className="col-6 form-group">
+                                <label>Mã phim</label>
+                                <input type="text" name="maPhim" disabled value={phimState.maPhim} className="form-control" onChange={formikTLC.handleChange} onBlur={formikTLC.handleBlur} />
+                            </div>
+                            <div className="col-6 form-group">
+                                <label>Ngày khởi chiếu</label>
+                                <br></br>
+                                <DatePicker
+                                    className="form-control"
+                                    selected={startDate}
+                                    onChange={(date) => setStartDate(date)}
+                                    timeInputLabel="Time:"
+                                    dateFormat="dd/MM/yyyy hh:mm aa"
+                                    showTimeInput
+                                    style={{ width: "100%" }}
+                                    name="ngayKhoiChieu2"
+                                    id="ngayKhoiChieu2"
+                                    onBlur={formikTLC.handleBlur}
+                                />
+                            </div>
+                            <div className="col-6 form-group">
+                                <label>Giá vé</label>
+                                <select name="giaVe" id="giaVe" className="form-control" onChange={formikTLC.handleChange} onBlur={formikTLC.handleBlur}>
+                                    <option value="" disabled selected>--</option>
+                                    <option value="55000">55.000</option>
+                                    <option value="75000">75.000</option>
+                                    <option value="95000">95.000</option>
+                                    <option value="115000">115.000</option>
+                                </select>
+                                {formikTLC.touched && formikTLC.errors.giaVe ? <p className="text-danger">{formikTLC.errors.giaVe}</p> : ''}
+                            </div>
+                            <div className="col-4 form-group">
+                                <label>Cụm rạp</label>
+                                <select name="maHeThongRap" id="maHeThongRap" className="form-control" onChange={changeSelectedInfo}>
+                                    {renderCumRap()}
+                                </select>
+                            </div>
+                            <div className="col-4 form-group">
+                                <label>Rạp phim</label>
+                                <select name="maCumRap" id="maCumRap" className="form-control" onChange={changeSelectedInfo}>
+                                    <option value="" selected></option>
+                                    {renderRap()}
+                                </select>
+                            </div>
+                            <div className="col-4 form-group">
+                                <label>Mã rạp</label>
+                                <select name="maRap" id="maRap" className="form-control" onChange={changeSelectedInfo} >
+                                    <option value="" selected></option>
+                                    {renderDanhSachRap()}
+                                </select>
+                            </div>
+                        </div>
+                        <Button className="btn btn-primary" type="submit">
+                            Xác nhận
+                        </Button>
+                    </form>
+                </Modal.Body>
+                <Modal.Footer>
+
+                </Modal.Footer>
+            </Modal>
             <div className="modal fade" id="exampleModal1" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">
@@ -237,7 +476,7 @@ export default function AdminDSP() {
                     {themPhim == true ?
                         <React.Fragment>
                             <div className="row title">
-                                <div className="col-6">
+                                <div className="col-6" style={{ marginBottom: "20px" }}>
                                     <h1>Thêm phim</h1>
                                 </div>
                                 <div className="col-6">
@@ -252,9 +491,9 @@ export default function AdminDSP() {
                                         {formik.touched && formik.errors.tenPhim ? <p className="text-danger">{formik.errors.tenPhim}</p> : ''}
                                     </div>
                                     <div className="col-6 form-group">
-                                        <label>Bí danh</label>
-                                        <input type="text" name="biDanh" className="form-control" onChange={formik.handleChange} onBlur={formik.handleBlur} />
-                                        {formik.touched && formik.errors.biDanh ? <p className="text-danger">{formik.errors.biDanh}</p> : ''}
+                                        <label>Mã phim</label>
+                                        <input type="text" name="maPhim" className="form-control" onChange={formik.handleChange} onBlur={formik.handleBlur} />
+                                        {formik.touched && formik.errors.maPhim ? <p className="text-danger">{formik.errors.maPhim}</p> : ''}
                                     </div>
                                     <div className="col-6 form-group">
                                         <label>Link trailer</label>
@@ -282,8 +521,8 @@ export default function AdminDSP() {
                                             dateFormat="dd/MM/yyyy"
                                             showTimeInput
                                             style={{ width: "100%" }}
-                                            name="ngayKhoiChieu"
-                                            id="ngayKhoiChieu"
+                                            name="ngayKhoiChieu1"
+                                            id="ngayKhoiChieu1"
                                         />
                                     </div>
                                     <div className="form-group col-6">
@@ -300,7 +539,7 @@ export default function AdminDSP() {
                     {phimState?.tenPhim ?
                         <React.Fragment>
                             <div className="row title">
-                                <div className="col-6">
+                                <div className="col-6" style={{ marginBottom: "20px" }}>
                                     <h1>Sửa thông tin phim</h1>
                                 </div>
                                 <div className="col-6">
@@ -348,14 +587,23 @@ export default function AdminDSP() {
                                             dateFormat="dd/MM/yyyy"
                                             showTimeInput
                                             style={{ width: "100%" }}
-                                            name="ngayKhoiChieu"
-                                            id="ngayKhoiChieu"
+                                            name="ngayKhoiChieu3"
+                                            id="ngayKhoiChieu3"
                                         />
                                     </div>
                                     <div className="form-group col-6">
                                     </div>
                                     <div className="form-group col-6">
-                                        <button className="btn btn-primary" type="submit" onClick={fakeSubmition}>Cập nhật</button>
+                                        <div className="row">
+                                            <div className="col-6 form-group">
+                                                <button className="btn btn-primary" type="submit" onClick={fakeSubmition}>Cập nhật</button>
+                                            </div>
+                                            <div className="col-6 form-group">
+                                                <Button variant="primary" onClick={handleShow}>
+                                                    Thêm lịch chiếu
+                                                </Button>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className="col-6 form-group">
                                         <button type="button" className="btn btn-danger ml-2" data-toggle="modal" data-target="#exampleModal1">Xóa</button>
@@ -368,18 +616,30 @@ export default function AdminDSP() {
                         ''
                     }
                     <h1>
-                        Danh sách tài khoản
+                        Danh sách phim
                         <button class="btn btn-success ml-5" onClick={() => { setThemPhim(true); setPhimState({}); }}>Thêm</button>
                     </h1>
                     <table class="table">
                         <thead>
                             <tr>
-                                <th scope="col">Tài khoản</th>
-                                <th scope="col">Họ tên</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Số điện thoại</th>
-                                <th scope="col">Mã loại người dùng</th>
-                                <th scope="col">Thao tác</th>
+                                <th scope="col">
+                                    <h5>Tên phim</h5>
+                                </th>
+                                <th scope="col">
+                                    <h5>Hình ảnh</h5>
+                                </th>
+                                <th scope="col">
+                                    <h5>Link trailer</h5>
+                                </th>
+                                <th scope="col">
+                                    <h5>Ngày khởi chiếu</h5>
+                                </th>
+                                <th scope="col">
+                                    <h5>Đánh giá</h5>
+                                </th>
+                                <th scope="col">
+                                    <h5>Thao tác</h5>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
