@@ -1,0 +1,60 @@
+@media screen and (max-width: 1024px) {
+    .search_bar {
+      height: 80px;
+      left: -37px;
+      width: 757px;
+      .input {
+        width: 100px !important;
+        margin-left: 17px;
+        .MuiFormControl-fullWidth {
+          width: 100px;
+          margin: 15px 20px;
+        }
+      }
+      .Mui-disabled {
+        margin-left: 51px !important;
+      }
+      .MuiButton-label {
+        font-size: 15px;
+      }
+      .buyTicket {
+        margin-left: 51px;
+        padding: 6px 10px;
+        font-size: 11px;
+        width: 50px !important;
+      }
+    }
+  }
+  @media screen and (max-width: 731px) {
+    .search_bar {
+      height: 80px;
+      left: -37px;
+      width: 600px;
+      .input {
+        width: 40px !important;
+        margin-left: 5px;
+        .MuiFormControl-fullWidth {
+          width: 40px;
+          margin: 15px 5px;
+        }
+      }
+      .Mui-disabled {
+        margin-left: 45px !important;
+      }
+      .MuiButton-label {
+        font-size: 11px;
+      }
+      .buyTicket {
+        margin-left: 51px;
+        padding: 6px 10px;
+        font-size: 11px;
+        width: 50px !important;
+      }
+    }
+  }
+  //Ip X
+  @media screen and (max-width: 375px) {
+    .search_bar {
+      display: none;
+    }
+  }
